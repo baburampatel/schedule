@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>University Course Scheduler</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="container">
+                <div class="flex items-center justify-between">
+                    <h1>University Course Scheduler</h1>
+                    <div class="flex items-center gap-16">
+                        <button class="btn btn--primary" id="generateTimetableBtn">Generate Timetable</button>
+                        <button class="btn btn--secondary" id="scanConflictsBtn">Scan Conflicts</button>
+                        <button class="btn btn--outline" id="exportAllBtn">Export All</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav">
+            <div class="container">
+                <div class="nav-tabs">
+                    <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+                    <button class="nav-tab" data-tab="import">Import All</button>
+                    <button class="nav-tab" data-tab="courses">Courses</button>
+                    <button class="nav-tab" data-tab="faculty">Faculty</button>
+                    <button class="nav-tab" data-tab="students">Students</button>
+                    <button class="nav-tab" data-tab="rooms">Rooms</button>
+                    <button class="nav-tab" data-tab="timetable">Timetable</button>
+                    <button class="nav-tab" data-tab="conflicts">Conflicts <span class="conflict-badge" id="conflictBadge">0</span></button>
+                    <button class="nav-tab" data-tab="unscheduled">Unscheduled <span class="conflict-badge" id="unscheduledBadge">0</span></button>
+                    <button class="nav-tab" data-tab="settings">Settings</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main">
+            <div class="container">
+                <!-- Dashboard Tab -->
+                <div class="tab-content active" id="dashboard">
+                    <div class="grid">
+                        <div class="card">
+                            <div class="card__body">
+                                <h3>System Overview</h3>
+                                <div class="status-grid">
+                                    <div class="status-item">
+                                        <span class="status-label">Courses:</span>
+                                        <span id="courseCount">0</span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Faculty:</span>
+                                        <span id="facultyCount">0</span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Students:</span>
+                                        <span id="studentCount">0</span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Rooms:</span>
+                                        <span id="roomCount">0</span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Conflicts:</span>
+                                        <span id="conflictCount" class="status--error">0</span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Unscheduled:</span>
+                                        <span id="unscheduledCount" class="status--warning">0</span>
+                                    </div>
+                                    <div class="status-item">
+                                        <span class="status-label">Scheduled %:</span>
+                                        <span id="scheduledPercentage" class="status--success">0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card" id="gettingStartedCard">
+                            <div class="card__body">
+                                <h3>Getting Started</h3>
+                                <p>Welcome! Start by importing your data or adding entities manually:</p>
+                                <div class="flex flex-col gap-8 mt-8">
+                                    <button class="btn btn--primary" id="quickImportBtn">Import CSV Data</button>
+                                    <button class="btn btn--secondary" id="addDataBtn">Add Data Manually</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Import All Tab -->
+                <div class="tab-content" id="import">
+                    <div class="section-header">
+                        <h2>Bulk CSV Import</h2>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Import All - Single CSV File</h3>
+                            <p>Import all your data using a single CSV file. The system will automatically detect and process different entity types (courses, faculty, students, rooms).</p>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Select CSV File</label>
+                                <input type="file" class="form-control" id="bulkCsvFileInput" accept=".csv">
+                            </div>
+                            
+                            <div class="form-group">
+                                <button class="btn btn--primary btn--full-width" id="importAllBtn" disabled>Import All Data</button>
+                            </div>
+                            
+                            <div class="import-status" id="importStatus" style="display: none;">
+                                <h4>Import Progress:</h4>
+                                <div id="importProgress"></div>
+                            </div>
+                            
+                            <div class="mt-8">
+                                <h4>Expected CSV Format:</h4>
+                                <pre><code>TYPE,ID,Name,Field1,Field2,Field3,Field4,Field5
+COURSE,CS101,Programming Fundamentals,3,Dr. Smith,"S001,S003,S005",,
+FACULTY,F001,Dr. Smith,Computer Science,Available,,
+STUDENT,S001,Alice Johnson,"CS101,PH301",,,,
+ROOM,R101,Room 101,30,Lab Equipment,,,</code></pre>
+                                <p class="mt-8"><strong>Note:</strong> Time slot data in CSV will be ignored - the system uses predefined time slots configured in Settings.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Courses Tab -->
+                <div class="tab-content" id="courses">
+                    <div class="section-header">
+                        <h2>Course Management</h2>
+                        <button class="btn btn--primary" id="addCourseBtn">Add Course</button>
+                    </div>
+                    <div class="card">
+                        <div class="card__body">
+                            <div id="coursesTableContainer">
+                                <p class="text-center">No courses available. Import data or add courses manually.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Faculty Tab -->
+                <div class="tab-content" id="faculty">
+                    <div class="section-header">
+                        <h2>Faculty Management</h2>
+                        <button class="btn btn--primary" id="addFacultyBtn">Add Faculty</button>
+                    </div>
+                    <div class="card">
+                        <div class="card__body">
+                            <div id="facultyTableContainer">
+                                <p class="text-center">No faculty members available. Import data or add faculty manually.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Students Tab -->
+                <div class="tab-content" id="students">
+                    <div class="section-header">
+                        <h2>Student Management</h2>
+                        <button class="btn btn--primary" id="addStudentBtn">Add Student</button>
+                    </div>
+                    <div class="card">
+                        <div class="card__body">
+                            <div id="studentsTableContainer">
+                                <p class="text-center">No students available. Import data or add students manually.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rooms Tab -->
+                <div class="tab-content" id="rooms">
+                    <div class="section-header">
+                        <h2>Room Management</h2>
+                        <button class="btn btn--primary" id="addRoomBtn">Add Room</button>
+                    </div>
+                    <div class="card">
+                        <div class="card__body">
+                            <div id="roomsTableContainer">
+                                <p class="text-center">No rooms available. Import data or add rooms manually.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timetable Tab -->
+                <div class="tab-content" id="timetable">
+                    <div class="section-header">
+                        <h2>Timetable Views</h2>
+                        <div class="flex gap-8 flex-wrap">
+                            <select class="form-control" id="viewTypeSelect">
+                                <option value="master">Master View</option>
+                                <option value="faculty">Faculty View</option>
+                                <option value="student">Student View</option>
+                                <option value="room">Room View</option>
+                            </select>
+                            <select class="form-control" id="entitySelect" style="display: none;">
+                                <option value="">Select...</option>
+                            </select>
+                            <button class="btn btn--outline" id="exportTimetableBtn">Export Current View</button>
+                            <div class="export-buttons" id="exportButtons" style="display: none;">
+                                <button class="btn btn--secondary" id="exportAllFacultyBtn">Export All Faculty Timetables</button>
+                                <button class="btn btn--secondary" id="exportAllStudentBtn">Export All Student Timetables</button>
+                                <button class="btn btn--secondary" id="exportAllRoomBtn">Export All Room Timetables</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card__body">
+                            <div id="timetableContainer">
+                                <p class="text-center">No timetable generated. Generate a timetable to view schedule.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conflicts Tab -->
+                <div class="tab-content" id="conflicts">
+                    <div class="section-header">
+                        <h2>Conflict Management</h2>
+                        <div class="flex gap-8">
+                            <button class="btn btn--primary" id="autoResolveBtn">Auto-Resolve</button>
+                            <button class="btn btn--secondary" id="refreshConflictsBtn">Refresh</button>
+                            <button class="btn btn--outline" id="exportConflictsBtn">Export Report</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card__body">
+                            <div id="conflictsContainer">
+                                <p class="text-center">No conflicts detected. ✅</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unscheduled Tab -->
+                <div class="tab-content" id="unscheduled">
+                    <div class="section-header">
+                        <h2>Unscheduled Sessions</h2>
+                        <div class="flex gap-8">
+                            <button class="btn btn--primary" id="retrySchedulingBtn">Retry Scheduling</button>
+                            <button class="btn btn--secondary" id="manualScheduleBtn">Schedule Manually</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card__body">
+                            <div id="unscheduledContainer">
+                                <p class="text-center">All sessions scheduled successfully. ✅</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div class="tab-content" id="settings">
+                    <div class="section-header">
+                        <h2>System Settings</h2>
+                        <button class="btn btn--primary" id="saveSettingsBtn">Save Settings</button>
+                    </div>
+                    <div class="card">
+                        <div class="card__body">
+                            <h3>Time Slots Configuration</h3>
+                            <div class="time-slots-container" id="timeSlotsContainer">
+                                <!-- Time slots will be populated here -->
+                            </div>
+                            <button class="btn btn--secondary mt-8" id="addTimeSlotBtn">Add Time Slot</button>
+                            
+                            <div class="mt-8">
+                                <h3>Scheduling Preferences</h3>
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <input type="checkbox" id="allowOverlappingBreaks"> Allow scheduling during breaks
+                                    </label>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        <input type="checkbox" id="strictCapacityCheck" checked> Strict room capacity checking
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Course Modal -->
+    <div class="modal hidden" id="courseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="courseModalTitle">Add Course</h3>
+                <button class="modal-close" id="closeCourseModal">&times;</button>
+            </div>
+            <form id="courseForm">
+                <div class="form-group">
+                    <label class="form-label">Course ID</label>
+                    <input type="text" class="form-control" id="courseId" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Course Name</label>
+                    <input type="text" class="form-control" id="courseName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sessions per Week</label>
+                    <input type="number" class="form-control" id="courseSessions" min="1" max="10" value="2" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Faculty</label>
+                    <select class="form-control" id="courseFaculty" required>
+                        <option value="">Select Faculty</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Students</label>
+                    <select class="form-control" id="courseStudents" multiple>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn--secondary" id="cancelCourseBtn">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Save Course</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Faculty Modal -->
+    <div class="modal hidden" id="facultyModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="facultyModalTitle">Add Faculty</h3>
+                <button class="modal-close" id="closeFacultyModal">&times;</button>
+            </div>
+            <form id="facultyForm">
+                <div class="form-group">
+                    <label class="form-label">Faculty ID</label>
+                    <input type="text" class="form-control" id="facultyId" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Faculty Name</label>
+                    <input type="text" class="form-control" id="facultyName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <input type="text" class="form-control" id="facultyDepartment">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn--secondary" id="cancelFacultyBtn">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Save Faculty</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Student Modal -->
+    <div class="modal hidden" id="studentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="studentModalTitle">Add Student</h3>
+                <button class="modal-close" id="closeStudentModal">&times;</button>
+            </div>
+            <form id="studentForm">
+                <div class="form-group">
+                    <label class="form-label">Student ID</label>
+                    <input type="text" class="form-control" id="studentId" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Student Name</label>
+                    <input type="text" class="form-control" id="studentName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Courses</label>
+                    <select class="form-control" id="studentCourses" multiple>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn--secondary" id="cancelStudentBtn">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Save Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Room Modal -->
+    <div class="modal hidden" id="roomModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="roomModalTitle">Add Room</h3>
+                <button class="modal-close" id="closeRoomModal">&times;</button>
+            </div>
+            <form id="roomForm">
+                <div class="form-group">
+                    <label class="form-label">Room ID</label>
+                    <input type="text" class="form-control" id="roomId" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Room Name</label>
+                    <input type="text" class="form-control" id="roomName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Capacity</label>
+                    <input type="number" class="form-control" id="roomCapacity" min="1" value="30" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn--secondary" id="cancelRoomBtn">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Save Room</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Timetable Edit Modal -->
+    <div class="modal hidden" id="editModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Timetable Slot</h3>
+                <button class="modal-close" id="closeEditModal">&times;</button>
+            </div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label class="form-label">Time Slot</label>
+                    <input type="text" class="form-control" id="editTimeSlot" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Day</label>
+                    <input type="text" class="form-control" id="editDay" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Course</label>
+                    <select class="form-control" id="editCourse">
+                        <option value="">No Assignment</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Room</label>
+                    <select class="form-control" id="editRoom">
+                        <option value="">Select Room</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn--secondary" id="cancelEditBtn">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Update Assignment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p id="loadingText">Processing...</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
